@@ -5,8 +5,6 @@ Currently this Docker script supports only 8 tools
     - Talisman
     - Git Guardian
     - TruffleHog
-    - Git Hound
-    - AWS Labs Git Secrets
     - Detect Secrets
 
 ### Features
