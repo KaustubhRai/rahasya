@@ -1,4 +1,4 @@
-Currently this Docker script supports only 8 tools 
+Currently this Docker script supports only 6 tools 
 
     - Git Leaks
     - Gitty Leaks
