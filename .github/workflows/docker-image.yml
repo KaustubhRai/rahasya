@@ -26,4 +26,4 @@ jobs:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
     - name: Push the Docker image
-      run: docker push Rahasya:$(date +%s)
+      run: docker push rahasya:$(date +%s)
