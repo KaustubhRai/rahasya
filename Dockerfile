@@ -178,3 +178,4 @@ RUN { \
 
 # Set the entrypoint to run the script
 ENTRYPOINT ["/app/entrypoint.sh"]
+
