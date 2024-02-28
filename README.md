@@ -38,18 +38,16 @@ docker run -it --rm -v "$(PWD):/repo" kaustubhrai19/rahasya
 To incorporate your Git Guardian API key or to modify any tool versions:
 
 1. **Clone the repository:**
-   ```bash
+```bash
    git clone https://github.com/KaustubhRai/rahasya.git
-
-**2. Edit the Dockerfile**:
-     Add your API key in `ENV GGSHIELD_TOKEN` or adjust the tool versions as necessary.
-     
-**3. Build your custom Docker image:**
-```bash
-docker build -t rahasya .
 ```
-
-**4. Run that modified image:**
-```bash
-docker run -it --rm -v "$(PWD):/repo" rahasya
-```
+2. **Edit the Dockerfile:**
+   Add your API key in `ENV GGSHIELD_TOKEN` or adjust the tool versions as necessary.
+3. **Build your custom Docker image:**
+   ```bash
+   docker build -t rahasya .
+   ```
+4. **Run that modified image:**
+   ```bash
+   docker run -it --rm -v "$(PWD):/repo" rahasya
+   ```
