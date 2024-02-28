@@ -2,6 +2,19 @@
 
 Various tools for secret scanning combined for different different stuff, used in day to day tasks
 
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Flags](#flags)
+- [Customization](#customization)
+- [Requirements](#requirements)
+- [Contribution Guidelines](#contribution-guidelines)
+- [License](#license)
+- [Troubleshooting](#troubleshooting)
+- [FAQs](#faqs)
+- [Credits](#credits)
+
 ## Features
 - GitLeaks (https://github.com/gitleaks/gitleaks)
 - Gitty Leaks (https://github.com/kootenpv/gittyleaks)
@@ -51,3 +64,24 @@ To incorporate your Git Guardian API key or to modify any tool versions:
    ```bash
    docker run -it --rm -v "$(PWD):/repo" rahasya
    ```
+## Requirements
+
+ - Docker version 4.20.1 or higher
+ - Compatible with Linux, macOS, Windows
+
+## Contribution Guidelines
+Contributions are welcome! Please submit a pull request or open an issue to discuss proposed changes.
+
+## License
+This project is licensed under the GNU GENERAL PUBLIC LICENSE - see the LICENSE.md file for details.
+
+## Troubleshooting
+If you encounter issues with Docker permissions, ensure your user is added to the Docker group or try running with `sudo`.
+
+## FAQs
+> **Q: Can I use this tool without Docker?**
+>
+> **A:** Currently, Docker is required for running this tool efficiently.
+
+## Credits
+Developed by Kaustubh Rai. Thanks to all the developers of the tools integrated into this project.
