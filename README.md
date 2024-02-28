@@ -32,3 +32,24 @@ docker run -it --rm -v "$(PWD):/repo" kaustubhrai19/rahasya
 - `-include_talisman`: Run Talisman separately from all the other tools. This flag will run Talisman and format that report in a presentable format that can be viewed in the browser.
 
 - `-help`: All the tools will only run properly if the repo is git cloned. Use this flag if you need guidance on how to proceed.
+
+## Customization
+
+To incorporate your Git Guardian API key or to modify any tool versions:
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/KaustubhRai/rahasya.git
+
+**2. Edit the Dockerfile**:
+     Add your API key in `ENV GGSHIELD_TOKEN` or adjust the tool versions as necessary.
+     
+**3. Build your custom Docker image:**
+```bash
+docker build -t rahasya .
+```
+
+**4. Run that modified image:**
+```bash
+docker run -it --rm -v "$(PWD):/repo" rahasya
+```
