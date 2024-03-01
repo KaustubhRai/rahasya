@@ -36,7 +36,7 @@ docker pull raikaustubh/rahasya
 ```
 docker run -it --rm -v "$(PWD):/repo" raikaustubh/rahasya
 ```
-<img width="1250" alt="image" src="https://github.com/KaustubhRai/rahasya/assets/28558847/85c03d98-b110-4975-90d3-9454be628503">
+<img width="1111" alt="image" src="https://github.com/KaustubhRai/rahasya/assets/28558847/f7728a0b-c3e6-447a-a284-a80cc9e88e5a">
 
 ## Flags
 
@@ -45,6 +45,8 @@ docker run -it --rm -v "$(PWD):/repo" raikaustubh/rahasya
 - `-include_talisman`: Run Talisman separately from all the other tools. This flag will run Talisman and format that report in a presentable format that can be viewed in the browser.
 
 - `-help`: All the tools will only run properly if the repo is git cloned. Use this flag if you need guidance on how to proceed.
+
+- `-scan [tool 1] [tool 2] ...`: Selectively run specified scanning tools. List the tools you want to execute, separated by spaces. Supported tools include `gitleaks`, `gittyleaks`, `trufflehog`, `detect-secrets`, and `gggshield`. If `gitguardian` or `gggshield` is specified, ensure you have provided the API key in the Dockerfile. Use this flag to customize the scan to your specific needs. For example, to run GitLeaks and TruffleHog, use `-scan gitleaks trufflehog`.
 
 ## Customization
 
