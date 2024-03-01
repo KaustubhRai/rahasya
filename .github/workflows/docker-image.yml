@@ -17,20 +17,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Read the version
       id: version
-      run: echo ::set-output name=VERSION::$(cat VERSION)
+      run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag raikaustubh/rahasya:${{ steps.version.outputs.VERSION }}
+      run: docker build . --file Dockerfile --tag raikaustubh/rahasya:${{ env.VERSION }}
     - name: Log in to Docker Hub
-      uses: docker/login-action@v1
+      uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
     - name: Push the Docker image with semantic version
-      run: docker push raikaustubh/rahasya:${{ steps.version.outputs.VERSION }}
+      run: docker push raikaustubh/rahasya:${{ env.VERSION }}
     - name: Tag the image as latest
       run: |
-        docker tag raikaustubh/rahasya:${{ steps.version.outputs.VERSION }} raikaustubh/rahasya:latest
+        docker tag raikaustubh/rahasya:${{ env.VERSION }} raikaustubh/rahasya:latest
         docker push raikaustubh/rahasya:latest
