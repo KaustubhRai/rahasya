@@ -111,6 +111,11 @@ RUN { \
     echo '  printf "\\n\033[1mGit Clone Help:\033[0m\\n"'; \
     echo '  printf "  \033[1;34mgit clone <repo_url>\033[0m\\n"'; \
     echo '  printf "  \033[1;34mgit clone --single-branch --branch <branch name> <repo_url>\033[0m\\n\\n"'; \
+    echo '  printf "\\n\033[1mExamples using -scan flag:\033[0m\\n"'; \
+    echo '  printf "  \033[1;34m-scan\033[0m\t\t\t\t\tScan the repository using all tools excluding Talisman.\\n"'; \
+    echo '  printf "  \033[1;34m-scan gitleaks\033[0m\t\t\tScan the repository using a single tool.\\n"'; \
+    echo '  printf "  \033[1;34m-scan trufflehog gittyleaks ggshield\033[0m\tScan the repository using multiple tools.\\n"'; \
+    echo '  printf "  \033[0;32mTools can be specified in any order.\\n\\n"'; \
     echo '  exit 0'; \
     echo 'else'; \
     echo '  echo "Invalid flag. Please use \033[1;32m-scan\033[0m, \033[1;32m-include_talisman\033[0m, \033[1;32m-scan [tool1] [tool2] ...\033[0m, or \033[1;32m-help\033[0m."'; \
