@@ -27,14 +27,14 @@ Various tools for secret scanning combined for different different stuff, used i
 ## Installation
 
 ```
-docker pull kaustubhrai19/rahasya
+docker pull raikaustubh/rahasya
 ```
 
 ## Usage
 
 
 ```
-docker run -it --rm -v "$(PWD):/repo" kaustubhrai19/rahasya
+docker run -it --rm -v "$(PWD):/repo" raikaustubh/rahasya
 ```
 <img width="1250" alt="image" src="https://github.com/KaustubhRai/rahasya/assets/28558847/85c03d98-b110-4975-90d3-9454be628503">
 
