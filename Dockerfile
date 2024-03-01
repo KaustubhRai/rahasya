@@ -2,15 +2,15 @@
 FROM python:3.12-slim-bullseye
 
 # Set environment variables for version numbers
-ENV GO_VERSION=1.21.2
-ENV GITLEAKS_VERSION=8.18.1
-ENV TRUFFLEHOG_VERSION=3.67.0
+ENV GO_VERSION=1.22.0
+ENV GITLEAKS_VERSION=8.18.2
+ENV TRUFFLEHOG_VERSION=3.68.3
 ENV TALISMAN_VERSION=1.32.0
 ENV TALISMAN_HTML_REPORT_VERSION=1.3
 
 # Install Ruby for lolcat, system dependencies, and security tools
 RUN apt-get update && \
-    apt-get install -y git wget make curl unzip procps ruby && \
+    apt-get install -y git wget make curl unzip procps ruby bash && \
     gem install lolcat && \
     wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz -O go.tar.gz && \
     tar -xvf go.tar.gz && \
@@ -81,9 +81,9 @@ RUN echo -e "Secret_Detection_Reports/\ntalisman_html_report/" > /trufflehog_exc
 
 # Script to handle user input and execute tools accordingly
 RUN { \
-    echo '#!/bin/sh'; \
+    echo '#!/bin/bash'; \
     echo 'cat /app/banner.txt | lolcat -t'; \
-    echo 'printf "\\n\033[1mFeatures Available:\033[0m\\n"'; \
+    echo 'printf "\\n\033[1mFeatures Available:\\033[0m\\n"'; \
     echo 'printf "%s\\n" "- GitLeaks (https://github.com/gitleaks/gitleaks)"'; \
     echo 'printf "%s\\n" "- Gitty Leaks (https://github.com/kootenpv/gittyleaks)"'; \
     echo 'printf "%s\\n" "- TruffleHog (https://github.com/trufflesecurity/trufflehog)"'; \
@@ -91,38 +91,78 @@ RUN { \
     echo 'printf "%s\\n" "- Git Guardian (Requires API Key). (https://github.com/GitGuardian/ggshield)"'; \
     echo 'printf "%s\\n" "- Talisman (https://github.com/thoughtworks/talisman)"'; \
     echo 'printf "\\n%s\\n" "✨ GIT CLONE THE REPO, TOOLS WILL WORK AT FULL POTENTIAL ONLY THEN. DONT KNOW HOW? USE, -help"'; \
-    echo 'printf "\\n\033[1mUsage:\033[0m\\n"'; \
+    echo 'printf "\\n\033[1mUsage:\\033[0m\\n"'; \
     echo 'printf "%s\\n" "  \033[1;32m-scan\033[0m                 Scan the repo using all tools excluding Talisman"'; \
     echo 'printf "%s\\n" "  \033[1;32m-include_talisman\033[0m     Scan the repo with Talisman"'; \
+    echo 'printf "%s\\n" "  \033[1;32m-scan [tool1] [tool2]\033[0m Scan the repo with specified tools (gitleaks, gittyleaks, trufflehog, detect-secrets, ggshield)"'; \
     echo 'printf "%s\\n" "  \033[1;32m-help\033[0m                 Show help for git clone"'; \
     echo 'printf "\\n"'; \
     echo 'read -p "\033[1mEnter the flags you want to use:\033[0m " cmd'; \
     echo 'printf "\\n"'; \
-    echo 'case "$cmd" in'; \
-    echo '  "-scan")'; \
-    echo '    if [ ! -d "/repo/.git" ]; then'; \
-    echo '      printf "\\033[0;31mError: Git repository not found in /repo\\033[0m\\n"'; \
-    echo '      exit 1'; \
-    echo '    fi'; \
-    echo '    cd /repo'; \
-    echo '    mkdir -p /repo/Secret_Detection_Reports'; \
-    echo '    printf "\\033[0;36mStarting GitLeaks...\\033[0m\\n"'; \
+    echo 'TOOLS=()'; \
+    echo 'if [ "$cmd" = "-include_talisman" ]; then'; \
+    echo '  TOOLS=("talisman")'; \
+    echo 'elif [ "$cmd" = "-scan" ]; then'; \
+    echo '  TOOLS=("gitleaks" "gittyleaks" "trufflehog" "detect-secrets" "ggshield")'; \
+    echo 'elif echo $cmd | grep -q "^-scan "; then'; \
+    echo '  cmd=$(echo $cmd | sed "s/-scan //")'; \
+    echo '  IFS=" " read -r -a TOOLS <<< "$cmd"'; \
+    echo 'elif [ "$cmd" = "-help" ]; then'; \
+    echo '  printf "\\n\033[1mGit Clone Help:\033[0m\\n"'; \
+    echo '  printf "  \033[1;34mgit clone <repo_url>\033[0m\\n"'; \
+    echo '  printf "  \033[1;34mgit clone --single-branch --branch <branch name> <repo_url>\033[0m\\n\\n"'; \
+    echo '  printf "\\n\033[1mExamples using -scan flag:\033[0m\\n"'; \
+    echo '  printf "  \033[1;34m-scan\033[0m\t\t\t\t\tScan the repository using all tools excluding Talisman.\\n"'; \
+    echo '  printf "  \033[1;34m-scan gitleaks\033[0m\t\t\tScan the repository using a single tool.\\n"'; \
+    echo '  printf "  \033[1;34m-scan trufflehog gittyleaks ggshield\033[0m\tScan the repository using multiple tools.\\n"'; \
+    echo '  printf "  \033[0;32mTools can be specified in any order.\\n\\n"'; \
+    echo '  exit 0'; \
+    echo 'else'; \
+    echo '  echo "Invalid flag. Please use \033[1;32m-scan\033[0m, \033[1;32m-include_talisman\033[0m, \033[1;32m-scan [tool1] [tool2] ...\033[0m, or \033[1;32m-help\033[0m."'; \
+    echo '  exit 1'; \
+    echo 'fi'; \
+    echo 'if [ ! -d "/repo/.git" ] && [ "${#TOOLS[@]}" -gt 0 ]; then'; \
+    echo '  printf "\\033[0;31mError: Git repository not found in /repo\\033[0m\\n"'; \
+    echo '  exit 1'; \
+    echo 'fi'; \
+    echo 'cd /repo || exit'; \
+    echo 'mkdir -p /repo/Secret_Detection_Reports'; \
+    echo 'for tool in "${TOOLS[@]}"; do'; \
+    echo '  case "$tool" in'; \
+    echo '    "gitleaks")'; \
+    echo 'printf "\\n"'; \
+    echo '      printf "\\033[0;36mStarting GitLeaks...\\033[0m\\n"'; \
     echo '    gitleaks detect --source=. --gitleaks-ignore-path='Secret_Detection_Reports/*' --gitleaks-ignore-path='talisman_html_report/*' --report-format=json --report-path=/repo/Secret_Detection_Reports/gitleaks_report.json --verbose'; \
     echo 'printf "\\n"'; \
-    echo '    printf "\033[0;32mGitleaks scan complete.\033[0m\\n"'; \
+    echo '      printf "\\033[0;32mGitleaks scan complete.\\033[0m\\n"'; \
     echo 'printf "\\n"'; \
-    echo '    printf "\\033[0;36mStarting GittyLeaks...\\033[0m\\n"'; \
+    echo '      ;;'; \
+    echo '    "gittyleaks")'; \
+    echo 'printf "\\n"'; \
+    echo '      printf "\\033[0;36mStarting GittyLeaks...\\033[0m\\n"'; \
     echo '    gittyleaks --find-anything | tee /repo/Secret_Detection_Reports/gittyleaks_report.txt'; \
     echo '    python /usr/local/bin/clean_gittyleaks_report.py /repo/Secret_Detection_Reports/gittyleaks_report.txt'; \
-    echo '    printf "\\033[0;32mGittyLeaks scan complete.\\033[0m\\n"'; \
     echo 'printf "\\n"'; \
-    echo '    printf "\\033[0;36mStarting Detect-secrets...\\033[0m\\n"'; \
-    echo '    detect-secrets scan --all-files --exclude-files '^Secret_Detection_Reports/' --exclude-files '^talisman_html_report/' >> /repo/Secret_Detection_Reports/Detect_Secrets-Report.txt'; \
-    echo '    printf "\\033[0;32mDetect-Secrets scan complete.\033[0m\\n"'; \
+    echo '      printf "\\033[0;32mGittyLeaks scan complete.\\033[0m\\n"'; \
     echo 'printf "\\n"'; \
-    echo '    printf "\\033[0;36mStarting TruffleHog...\\033[0m\\n"'; \
+    echo '      ;;'; \
+    echo '    "trufflehog")'; \
+    echo 'printf "\\n"'; \
+    echo '      printf "\\033[0;36mStarting TruffleHog...\\033[0m\\n"'; \
     echo '    /usr/local/bin/trufflehog --no-update git file:///repo --exclude-paths=/trufflehog_exclude.txt >> /repo/Secret_Detection_Reports/trufflehog_report.txt'; \
-    echo '    printf "\\033[0;32mTruffleHog scan complete.\033[0m\\n"'; \
+    echo 'printf "\\n"'; \
+    echo '      printf "\\033[0;32mTruffleHog scan complete.\\033[0m\\n"'; \
+    echo 'printf "\\n"'; \
+    echo '      ;;'; \
+    echo '    "detect-secrets")'; \
+    echo 'printf "\\n"'; \
+    echo '      printf "\\033[0;36mStarting Detect-secrets...\\033[0m\\n"'; \
+    echo '    detect-secrets scan --all-files --exclude-files '^Secret_Detection_Reports/' --exclude-files '^talisman_html_report/' >> /repo/Secret_Detection_Reports/Detect_Secrets-Report.txt'; \
+    echo 'printf "\\n"'; \
+    echo '      printf "\\033[0;32mDetect-Secrets scan complete.\\033[0m\\n"'; \
+    echo 'printf "\\n"'; \
+    echo '      ;;'; \
+    echo '    "ggshield")'; \
     echo 'printf "\\n"'; \
     echo '    printf "\\033[0;36mStarting GitGuardian...\\033[0m\\n"'; \
     echo '    ggshield api-status > /tmp/ggshield_api_status.txt'; \
@@ -135,21 +175,14 @@ RUN { \
     echo '        ggshield secret scan --show-secrets repo . >> /repo/Secret_Detection_Reports/ggshield_report.txt'; \
     echo 'printf "\\n"'; \
     echo '        printf "\\033[0;32mGit Guardian scan complete.\\033[0m\\n"'; \
-    echo 'printf "\\n"'; \
     echo '      fi'; \
     echo '    else'; \
-    echo 'printf "\\n"'; \
     echo '      printf "\\033[0;33mSkipping Git Guardian Scan since API key is not present\\033[0m\\n"'; \
+    echo '    fi'; \
     echo 'printf "\\n"'; \
-    echo '    fi'; \
-    echo '    ;;'; \
-    echo '  "-include_talisman")'; \
-    echo '    if [ ! -d "/repo/.git" ]; then'; \
-    echo '      printf "\\033[0;31mError: Git repository not found in /repo\\033[0m\\n"'; \
-    echo '      exit 1'; \
-    echo '    fi'; \
-    echo '    cd /repo'; \
-    echo '    mkdir -p /repo/Secret_Detection_Reports'; \
+    echo '      ;;'; \
+    echo '    "talisman")'; \
+    echo 'printf "\\n"'; \
     echo '    printf "\\033[0;36mStarting Talisman...\\033[0m\\n"'; \
     echo '    if [ ! -d "/repo/.git" ]; then'; \
     echo '      printf "\\033[0;31mError: Git repository not found in /repo\\033[0m\\n"'; \
@@ -163,19 +196,13 @@ RUN { \
     echo '    else'; \
     echo '      printf "\\033[0;31mTalisman HTML report directory not found\\033[0m\\n"'; \
     echo '    fi'; \
-    echo '    ;;'; \
-    echo '  "-help")'; \
-    echo '    printf "\\n\033[1mGit Clone Help:\033[0m\\n"'; \
-    echo '    printf "  \033[1;34mgit clone <repo_url>\033[0m\\n"'; \
-    echo '    printf "  \033[1;34mgit clone --single-branch --branch <branch name> <repo_url>\033[0m\\n\\n"'; \
-    echo '    ;;'; \
-    echo '  *)'; \
-    echo '    printf "\\nInvalid flag. Please use \033[1;32m-scan\033[0m, \033[1;32m-include_talisman\033[0m, or \033[1;32m-help\033[0m.\\n"'; \
-    echo '    ;;'; \
-    echo 'esac'; \
+    echo '      ;;'; \
+    echo '    *)'; \
+    echo '      echo "Invalid tool: $tool. Skipping...";'; \
+    echo '      ;;'; \
+    echo '  esac'; \
+    echo 'done'; \
 } > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
-
 
 # Set the entrypoint to run the script
 ENTRYPOINT ["/app/entrypoint.sh"]
-
