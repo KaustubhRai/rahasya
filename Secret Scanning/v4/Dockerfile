@@ -2,7 +2,7 @@
 FROM python:3.12-slim-bullseye
 
 # Set environment variables for version numbers
-ENV GO_VERSION=1.22.2
+ENV GO_VERSION=1.22.0
 ENV GITLEAKS_VERSION=8.18.2
 ENV TRUFFLEHOG_VERSION=3.68.3
 ENV TALISMAN_VERSION=1.32.0
