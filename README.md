@@ -1,4 +1,4 @@
-# Automation-Tool for Comprehensive Secret Scanning
+# A Comprehensive Secret Scanning Automation-Tool
 
 Securing your codebase with various tools for secret scanning
 
