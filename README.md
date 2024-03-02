@@ -1,6 +1,6 @@
-# Automation-Tool for Secret Scanning
+# Automation-Tool for Comprehensive Secret Scanning
 
-Various tools for secret scanning combined for different different stuff, used in day to day tasks
+Securing your codebase with various tools for secret scanning
 
 ## Table of Contents
 - [Features](#features)
