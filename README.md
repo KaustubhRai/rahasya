@@ -1,5 +1,8 @@
 # A Comprehensive Secret Scanning Automation-Tool
 
+![Docker Image Version (tag)](https://img.shields.io/docker/v/raikaustubh/rahasya/latest?logo=docker)
+
+
 Securing your codebase with various tools for secret scanning
 
 ## Table of Contents
