@@ -34,6 +34,7 @@ docker pull raikaustubh/rahasya
 
 ## Usage
 
+Go in the git cloned directory and run
 
 ```
 docker run -it --rm -v "$(PWD):/repo" raikaustubh/rahasya
