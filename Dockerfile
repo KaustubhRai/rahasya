@@ -1,31 +1,51 @@
-# Use Python base image for tool compatibility
-FROM python:3.12-slim-bullseye
+FROM python:3.13-slim-bullseye
+
+# Use Docker's automatic build arg for architecture
+ARG TARGETARCH
 
 # Set environment variables for version numbers
-ENV GO_VERSION=1.21.10
-ENV GITLEAKS_VERSION=8.18.2
-ENV TRUFFLEHOG_VERSION=3.68.3
+ENV GITLEAKS_VERSION=8.24.0
+ENV TRUFFLEHOG_VERSION=3.88.14
 ENV TALISMAN_VERSION=1.32.0
 ENV TALISMAN_HTML_REPORT_VERSION=1.3
 
-# Install Ruby for lolcat, system dependencies, and security tools
+# Install dependencies + pip tools
 RUN apt-get update && \
-    apt-get install -y git wget make curl unzip procps ruby bash && \
-    gem install lolcat && \
-    wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz -O go.tar.gz && \
-    tar -xvf go.tar.gz && \
-    mv go /usr/local && \
-    rm go.tar.gz && \
+    apt-get install -y git wget curl unzip procps bash && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    pip install gittyleaks detect-secrets ggshield && \
-    wget https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz -O gitleaks.tar.gz && \
+    pip install gittyleaks detect-secrets ggshield
+
+# Gitleaks: choose arm64 or amd64
+RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+      GITLEAKS_URL="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_arm64.tar.gz"; \
+    else \
+      GITLEAKS_URL="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"; \
+    fi && \
+    echo "Downloading Gitleaks for $TARGETARCH: $GITLEAKS_URL" && \
+    wget -O gitleaks.tar.gz "$GITLEAKS_URL" && \
     tar -xzf gitleaks.tar.gz -C /usr/local/bin/ && \
-    rm gitleaks.tar.gz && \
-    wget https://github.com/trufflesecurity/trufflehog/releases/download/v${TRUFFLEHOG_VERSION}/trufflehog_${TRUFFLEHOG_VERSION}_linux_amd64.tar.gz -O trufflehog.tar.gz && \
-    tar -xzvf trufflehog.tar.gz -C /usr/local/bin/ && \
-    rm trufflehog.tar.gz && \
-    wget https://github.com/thoughtworks/talisman/releases/download/v${TALISMAN_VERSION}/talisman_linux_amd64 -O /usr/local/bin/talisman && \
+    rm gitleaks.tar.gz
+
+# Trufflehog: choose arm64 or amd64
+RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+      TRUFFLEHOG_URL="https://github.com/trufflesecurity/trufflehog/releases/download/v${TRUFFLEHOG_VERSION}/trufflehog_${TRUFFLEHOG_VERSION}_linux_arm64.tar.gz"; \
+    else \
+      TRUFFLEHOG_URL="https://github.com/trufflesecurity/trufflehog/releases/download/v${TRUFFLEHOG_VERSION}/trufflehog_${TRUFFLEHOG_VERSION}_linux_amd64.tar.gz"; \
+    fi && \
+    echo "Downloading Trufflehog for $TARGETARCH: $TRUFFLEHOG_URL" && \
+    wget -O trufflehog.tar.gz "$TRUFFLEHOG_URL" && \
+    tar -xzf trufflehog.tar.gz -C /usr/local/bin/ && \
+    rm trufflehog.tar.gz
+
+# Talisman: choose arm64 or amd64
+RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+      TALISMAN_URL="https://github.com/thoughtworks/talisman/releases/download/v${TALISMAN_VERSION}/talisman_linux_arm64"; \
+    else \
+      TALISMAN_URL="https://github.com/thoughtworks/talisman/releases/download/v${TALISMAN_VERSION}/talisman_linux_amd64"; \
+    fi && \
+    echo "Downloading Talisman for $TARGETARCH: $TALISMAN_URL" && \
+    wget -O /usr/local/bin/talisman "$TALISMAN_URL" && \
     chmod +x /usr/local/bin/talisman
 
 RUN mkdir -p /root/.talisman && \
@@ -36,8 +56,8 @@ RUN mkdir -p /root/.talisman && \
     rm talisman_html_report.zip
 
 # Set environment variables
-ENV PATH="$PATH:/usr/local/go/bin" \
-    GIT_DISCOVERY_ACROSS_FILESYSTEM=true
+ENV GIT_DISCOVERY_ACROSS_FILESYSTEM=true
+
 # api key of git guaridan here, if you have. instead of abcd put that value
 ENV GGSHIELD_TOKEN=abcd
 RUN echo "$GGSHIELD_TOKEN" | ggshield auth login --method token 2>&1 || \
@@ -46,19 +66,10 @@ RUN echo "$GGSHIELD_TOKEN" | ggshield auth login --method token 2>&1 || \
 # Prepare the workspace
 WORKDIR /app
 
-# Create an ASCII art banner
-RUN echo ' _______           __                                           \n\
-|       \\         |  \\                                          \n\
-| ▓▓▓▓▓▓▓\\ ______ | ▓▓____   ______   _______ __    __  ______  \n\
-| ▓▓__| ▓▓|      \\| ▓▓    \\ |      \\ /       \\  \\  |  \\|      \\ \n\
-| ▓▓    ▓▓ \\▓▓▓▓▓▓\\ ▓▓▓▓▓▓▓\\ \\▓▓▓▓▓▓\\  ▓▓▓▓▓▓▓ ▓▓  | ▓▓ \\▓▓▓▓▓▓\\\n\
-| ▓▓▓▓▓▓▓\\/      ▓▓ ▓▓  | ▓▓/      ▓▓\\▓▓    \\| ▓▓  | ▓▓/      ▓▓\n\
-| ▓▓  | ▓▓  ▓▓▓▓▓▓▓ ▓▓  | ▓▓  ▓▓▓▓▓▓▓_\\▓▓▓▓▓▓\\ ▓▓__/ ▓▓  ▓▓▓▓▓▓▓\n\
-| ▓▓  | ▓▓\\▓▓    ▓▓ ▓▓  | ▓▓\\▓▓    ▓▓       ▓▓\\▓▓    ▓▓\\▓▓    ▓▓\n\
- \\▓▓   \\▓▓ \\▓▓▓▓▓▓▓\\▓▓   \\▓▓ \\▓▓▓▓▓▓▓\\▓▓▓▓▓▓▓ _\\▓▓▓▓▓▓▓ \\▓▓▓▓▓▓▓\n\
-                                             |  \\__| ▓▓         \n\
-                                              \\▓▓    ▓▓         \n\
-                                               \\▓▓▓▓▓▓          ' > /app/banner.txt
+# Download banner and rainbow script from GitHub
+RUN wget -O /app/banner.txt "https://raw.githubusercontent.com/KaustubhRai/rahasya/main/Secret%20Scanning/src/rainbow-scripts/banner.txt" && \
+    wget -O /usr/local/bin/rainbow.py "https://raw.githubusercontent.com/KaustubhRai/rahasya/main/Secret%20Scanning/src/rainbow-scripts/rainbow.py" && \
+    chmod +x /usr/local/bin/rainbow.py
 
 # Embed a Python script for cleaning the gittyleaks report
 RUN echo 'import re\n\
@@ -82,7 +93,7 @@ RUN echo -e "Secret_Detection_Reports/\ntalisman_html_report/" > /trufflehog_exc
 # Script to handle user input and execute tools accordingly
 RUN { \
     echo '#!/bin/bash'; \
-    echo 'cat /app/banner.txt | lolcat -t'; \
+    echo 'python3 /usr/local/bin/rainbow.py /app/banner.txt'; \
     echo 'printf "\\n\033[1mFeatures Available:\\033[0m\\n"'; \
     echo 'printf "%s\\n" "- GitLeaks (https://github.com/gitleaks/gitleaks)"'; \
     echo 'printf "%s\\n" "- Gitty Leaks (https://github.com/kootenpv/gittyleaks)"'; \
@@ -121,7 +132,7 @@ RUN { \
     echo '  echo "Invalid flag. Please use \033[1;32m-scan\033[0m, \033[1;32m-include_talisman\033[0m, \033[1;32m-scan [tool1] [tool2] ...\033[0m, or \033[1;32m-help\033[0m."'; \
     echo '  exit 1'; \
     echo 'fi'; \
-    echo 'if [ ! -d "/repo/.git" ] && [ "${#TOOLS[@]}" -gt 0 ]; then'; \
+    echo 'if [ ! -d "/repo/.git" ] && [ "${#TOOLS[@]}" > 0 ]; then'; \
     echo '  printf "\\033[0;31mError: Git repository not found in /repo\\033[0m\\n"'; \
     echo '  exit 1'; \
     echo 'fi'; \
@@ -168,7 +179,7 @@ RUN { \
     echo '    ggshield api-status > /tmp/ggshield_api_status.txt'; \
     echo '    if grep -q "Status: healthy" /tmp/ggshield_api_status.txt; then'; \
     echo '      ggshield_quota=$(ggshield quota | grep "Quota available:" | awk "{print \$3}")'; \
-    echo '      if [ "$ggshield_quota" -le 500 ]; then'; \
+    echo '      if [ "$ggshield_quota" -le 500]; then'; \
     echo '        printf "\\033[0;33mQuota not available, exiting Git Guardian. Wait next month to refill quota 🤷\\033[0m\\n"'; \
     echo '      else'; \
     echo '        printf "\\033[0;36mRunning GitGuardian scan...\\033[0m\\n"'; \
