@@ -1,5 +1,5 @@
 # Use Python base image for tool compatibility
-FROM python:3.12-slim-bullseye
+FROM python:3.13-slim-bullseye
 
 # Set environment variables for version numbers
 ENV GO_VERSION=1.21.2
