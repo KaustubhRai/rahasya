@@ -1,5 +1,5 @@
 # Use a base image with Python, git, and other necessary tools
-FROM python:3.12-slim-bullseye
+FROM python:3.13-slim-bullseye
 
 # Install necessary tools and dependencies
 RUN apt-get update && \
