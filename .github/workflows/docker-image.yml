@@ -25,7 +25,7 @@ jobs:
 
     # 1) Set up or update QEMU to emulate ARM64 more reliably
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
       with:
         image: tonistiigi/binfmt:latest
         platforms: all
